@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 function ActionsCell({
   value: initialValue,
   onView,
-  onDelete, // This is a custom function that we supplied to our table instance
+  onDelete,
 }) {
-  // We need to keep and update the state of the cell normally
   const [userId, setUserId] = useState(initialValue);
 
   // If the initialValue is changed external, sync it up with our state
@@ -28,6 +27,11 @@ export default [
       { Header: 'Name', accessor: 'name' },
       { Header: 'Surname', accessor: 'surname' },
       { Header: 'Age', accessor: 'age' },
-      { Header: 'Actions', accessor: 'id', Cell: ActionsCell },
+      {
+        Header: 'Actions',
+        accessor: 'id',
+        Cell: ActionsCell,
+      },
     ],
+    Footer: ({ addNewEmptyRow }) => (<button type="button" onClick={addNewEmptyRow}>Add New User</button>),
   }];

@@ -1,22 +1,10 @@
 {
   "user": [
     {
-      "id": 2,
-      "name": "carl",
-      "surname": "doe",
-      "age": 24
-    },
-    {
-      "id": 3,
-      "name": "mark",
-      "surname": "doe",
-      "age": 24
-    },
-    {
-      "id": 999,
-      "name": "sjohnysys",
-      "surname": "doe",
-      "age": 24
+      "name": "juan",
+      "surname": "gil",
+      "age": "31",
+      "id": 1
     }
   ]
 }

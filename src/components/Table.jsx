@@ -1,6 +1,9 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react';
-import { useTable } from 'react-table/dist/react-table.development';
+import {
+  useTable, useSortBy, useAsyncDebounce, useGlobalFilter,
+} from 'react-table/dist/react-table.development';
 import './table.scss';
 
 // Create an editable cell renderer
@@ -35,25 +38,66 @@ const defaultColumn = {
   Cell: EditableCell,
 };
 
+function GlobalFilter({
+  preGlobalFilteredRows,
+  globalFilter,
+  setGlobalFilter,
+}) {
+  const count = preGlobalFilteredRows.length;
+  const [value, setValue] = useState(globalFilter);
+  const onChange = useAsyncDebounce((valueChanged) => {
+    setGlobalFilter(valueChanged || undefined);
+  }, 200);
+
+  return (
+    <span>
+      Search:
+      {' '}
+      <input
+        value={value || ''}
+        onChange={(e) => {
+          setValue(e.target.value);
+          onChange(e.target.value);
+        }}
+        placeholder={`${count} records...`}
+        style={{
+          fontSize: '1.1rem',
+          border: '0',
+        }}
+      />
+    </span>
+  );
+}
+
 function Table({
-  columns, data, skipPageReset, updateMyData, onDelete, onView,
+  columns, data, skipPageReset, updateMyData, onDelete, onView, addNewEmptyRow,
 }) {
   // Use the state and functions returned from useTable to build your UI
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
+    footerGroups,
     rows,
     prepareRow,
-  } = useTable({
-    columns,
-    data,
-    defaultColumn,
-    autoResetPage: !skipPageReset,
-    updateMyData,
-    onDelete,
-    onView,
-  });
+    state,
+    visibleColumns,
+    preGlobalFilteredRows,
+    setGlobalFilter,
+  } = useTable(
+    {
+      columns,
+      data,
+      defaultColumn,
+      autoResetPage: !skipPageReset,
+      updateMyData,
+      onDelete,
+      onView,
+      addNewEmptyRow,
+    },
+    useGlobalFilter,
+    useSortBy,
+  );
 
   // Render the UI for your table
   return (
@@ -62,10 +106,33 @@ function Table({
         {headerGroups.map((headerGroup) => (
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+              <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                {column.render('Header')}
+                <span>
+                  {column.isSorted
+                    ? column.isSortedDesc
+                      ? ' 🔽'
+                      : ' 🔼'
+                    : ''}
+                </span>
+              </th>
             ))}
           </tr>
         ))}
+        <tr>
+          <th
+            colSpan={visibleColumns.length}
+            style={{
+              textAlign: 'left',
+            }}
+          >
+            <GlobalFilter
+              preGlobalFilteredRows={preGlobalFilteredRows}
+              globalFilter={state.globalFilter}
+              setGlobalFilter={setGlobalFilter}
+            />
+          </th>
+        </tr>
       </thead>
       <tbody {...getTableBodyProps()}>
         {rows.map((row) => {
@@ -77,6 +144,15 @@ function Table({
           );
         })}
       </tbody>
+      <tfoot>
+        {footerGroups.map((group) => (
+          <tr {...group.getFooterGroupProps()}>
+            {group.headers.map((column) => (
+              <td {...column.getFooterProps()}>{column.render('Footer')}</td>
+            ))}
+          </tr>
+        ))}
+      </tfoot>
     </table>
   );
 }

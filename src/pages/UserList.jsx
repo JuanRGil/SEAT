@@ -6,6 +6,11 @@ import {
 import Table from '../components/Table';
 import columns from './utils/columns';
 
+const emptyUser = {
+  name: '',
+  surname: '',
+  age: '',
+};
 function UserList() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -19,7 +24,7 @@ function UserList() {
     // We also turn on the flag to not reset the page
     setSkipPageReset(true);
 
-    setUsers((old) => old.map((row, index) => {
+    setUsers((old) => old.map((user, index) => {
       if (index === rowIndex) {
         const newData = {
           ...old[rowIndex],
@@ -27,15 +32,18 @@ function UserList() {
         };
         // super happy path;
         // TODO : fix bifurcated data. two sources of thruth
-        if (newData.id) {
-          updateUser(newData);
-        } else {
-          saveUser(newData);
-        }
+        updateUser(newData);
         return newData;
       }
-      return row;
+      return user;
     }));
+  };
+  const addNewEmptyRow = () => {
+    // We also turn on the flag to not reset the page
+    setSkipPageReset(true);
+    saveUser(emptyUser).then((response) => {
+      setUsers((old) => [...old, response.data]);
+    });
   };
   const onView = (userId) => {
     navigate(`${userId}`);
@@ -57,6 +65,7 @@ function UserList() {
       updateMyData={updateMyData}
       onDelete={onDelete}
       onView={onView}
+      addNewEmptyRow={addNewEmptyRow}
     />
   );
 }
